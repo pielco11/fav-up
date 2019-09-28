@@ -1,9 +1,9 @@
 # Fav-up
-IP lookup from favicon using Shodan
-
-![img](https://i.imgur.com/4S6NIx8.png)
-
 Lookups for real IP starting from the favicon icon and using Shodan.
+
+![img](https://i.imgur.com/oio0qCh.png)
+![img2](https://i.imgur.com/NbkqGbY.png)
+
 
 # Installation
 - `pip3 install -r requirements.txt`
@@ -33,6 +33,8 @@ As of now, this tool can be used in three different ways:
 
 #### Web
 `python3 favUp.py --web https://domain.behind.cloudflare -sc`
+
+
 ## Module
 
 ```python
