@@ -50,7 +50,7 @@ class FavUp(object):
     def deepConnectionLens(self, response):
         try:
             mIP = list(response.raw._connection.sock.getpeername())[0]
-        except:
+        except AttributeError:
             mIP = list(response.raw._connection.sock.socket.getpeername())[0]
 
         print(f"Mask-IP: {mIP}")
