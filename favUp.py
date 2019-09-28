@@ -48,7 +48,11 @@ class FavUp(object):
             print(f"Real-IP: {s['ip_str']}")
 
     def deepConnectionLens(self, response):
-        mIP = list(response.raw._connection.sock.socket.getpeername())[0]
+        try:
+            mIP = list(response.raw._connection.sock.getpeername())[0]
+        except:
+            mIP = list(response.raw._connection.sock.socket.getpeername())[0]
+
         print(f"Mask-IP: {mIP}")
         print(f"Mask-ISP: {IPWhois(mIP).lookup_whois()['nets'][0]['name']}")
 
