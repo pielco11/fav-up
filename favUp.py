@@ -7,7 +7,7 @@ from ipwhois import IPWhois
 from bs4 import BeautifulSoup
 from shodan import Shodan
 
-shodan = Shodan(open("SHODAN_API.txt", "r").readline())
+shodan = Shodan(open("SHODAN_API.txt", "r").readline().strip())
 
 def faviconHash(data, source):
     if source == "web":
