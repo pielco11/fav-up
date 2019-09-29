@@ -2,6 +2,7 @@ import requests
 import base64
 import argparse
 
+import tqdm
 import mmh3
 from ipwhois import IPWhois
 from bs4 import BeautifulSoup
@@ -13,6 +14,7 @@ class FavUp(object):
         """ Parse the arguments
         """
         self.show = None
+        self._iterator = None
 
         self.key = None
         self.keyFile = None
@@ -25,6 +27,10 @@ class FavUp(object):
         self.maskIP = None
         self.maskISP = None
         self.realIPs = []
+        self.fileList = []
+        self.urlList = []
+        self.webList = []
+        self.faviconsList = []
 
         if kwargs.get('show'):
             self.show = True
@@ -38,6 +44,14 @@ class FavUp(object):
             ap.add_argument('-fu', '--favicon-url', help="Load the favicon icon from an URL.")
             ap.add_argument('-w', '--web', help="Extracts the favicon location from the page.")
 
+            ap.add_argument('-fl', '--favicon-list',
+                help="Iterate over a file that contains the full path of all the icons which you want to lookup.")
+            ap.add_argument('-ul', '--url-list',
+                help="Iterate over a file that contains the full URL of all the icons which you want to lookup.")
+            ap.add_argument('-wl', '--web-list',
+                help="Iterate over a file that contains all the domains which you want to lookup.")
+
+
             args = self._argsCheck(ap.parse_args())
             self.key = args.key
             self.keyFile = args.key_file
@@ -45,6 +59,9 @@ class FavUp(object):
             self.faviconFile = args.favicon_file
             self.faviconURL = args.favicon_url
             self.web = args.web
+            self.fileList = _serializeListFile(args.favicon_list)
+            self.urlList = _serializeListFile(args.url_list)
+            self.webList = _serializeListFile(args.web_list)
 
             self.run()
     
@@ -53,11 +70,29 @@ class FavUp(object):
             print('[x] Please specify the key with --key, --key-file or --shodan-cli.')
             exit(1)
         
-        if not (args.favicon_file or args.favicon_url or args.web):
-            print('[x] Please speficy the source of the favicon with --favicon-file, --favicon-url or --web')
+        if not (args.favicon_file or args.favicon_url or args.web or
+                args.favicon_list or args.url_list or args.web_list):
+            print('[x] Please specify the source of the favicon with --favicon-file, --favicon-url, --web'+
+                ', --favicon-list, --url-list or --web-list.')
             exit(1)
 
         return args
+    
+    def _serializeListFile(self, inputFile):
+        """ Remove whitespace chars and lines
+        """
+        _output = []
+        with open(inputFile, 'r') as inFile:
+            for _l in inFile:
+                if _l.strip():
+                    _output.append(_l.strip())
+        return _output
+
+
+    def _runShodanSearch(self):
+        if self.show:
+            print(f"Favicon Hash: {self.favhash}")
+        self.shodanSearch(self.favhash)
 
     def run(self):
         if self.keyFile:
@@ -67,30 +102,55 @@ class FavUp(object):
         elif self.shodanCLI:
             self.shodan = Shodan(get_api_key())
         else:
-            print('[x] Wrong input type.')
+            print('[x] Wrong input API key type.')
             exit(1)
 
-        if self.faviconFile:
-            data = open(self.faviconFile, 'rb').read()
-            self.favhash = self.faviconHash(data)
-        elif self.faviconURL:
-            data = requests.get(self.faviconURL, stream=True)
-            self.deepConnectionLens(data)
-            data = data.content
-            self.favhash = self.faviconHash(data)
-        else:
-            try:
-                data = requests.get(f"https://{self.web}", stream=True)
-            except requests.exceptions.ConnectionError:
-                print(f"[x] Connection refused by {self.web}.")
+        if self.faviconFile or self.fileList:
+            self.fileList.append(self.faviconFile)
+            for fav in self.fileList:
+                data = open(fav, 'rb').read()
+                self.favhash = self.faviconHash(data)
+                self._runShodanSearch()
+                self.faviconsList.append({
+                    'favhash': self.favhash,
+                    'file': fav,
+                    'realIPs': self.realIPs
+                    })
+        if self.faviconURL or self.urlList:
+            self.urlList.append(self.faviconURL)
+            for fav in self.urlList:
+                data = requests.get(fav, stream=True)
+                self.deepConnectionLens(data)
+                data = data.content
+                self.favhash = self.faviconHash(data)
+                self._runShodanSearch()
+                self.faviconsList.append({
+                    'favhash': self.favhash,
+                    'url': self.faviconURL,
+                    'maskIP': self.maskIP,
+                    'maskISP': self.maskISP,
+                    'realIPs': self.realIPs
+                    })
+        if self.web or self.webList:
+            self.webList.append(self.web)
+            for w in self.webList:
+                try:
+                    data = requests.get(f"https://{w}", stream=True)
+                    self.deepConnectionLens(data)
+                    data = self.searchFaviconHTML(w).content
+                    self.favhash = self.faviconHash(data, web_source=True)
+                    self._runShodanSearch()
+                    self.faviconsList.append({
+                        'favhash': self.favhash,
+                        'url': data,
+                        'maskIP': self.maskIP,
+                        'maskISP': self.maskISP,
+                        'realIPs': self.realIPs
+                        })
+                except requests.exceptions.ConnectionError:
+                    print(f"[x] Connection refused by {w}.")
+            if len(self.webList) == 1:
                 exit(1)
-            self.deepConnectionLens(data)
-            data = self.searchFaviconHTML(self.web).content
-            self.favhash = self.faviconHash(data, web_source=True)
-
-        if self.show:
-            print(f"Favicon Hash: {self.favhash}")
-        self.shodanSearch(self.favhash)
 
     
     def faviconHash(self, data, web_source=None):
