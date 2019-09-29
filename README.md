@@ -7,7 +7,7 @@ Lookups for real IP starting from the favicon icon and using Shodan.
 
 # Installation
 - `pip3 install -r requirements.txt`
-- Shodan API key
+- Shodan API key (**Membership** plan, not the free one)
 
 # Usage
 
