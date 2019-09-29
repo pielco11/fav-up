@@ -7,7 +7,7 @@ Lookups for real IP starting from the favicon icon and using Shodan.
 
 # Installation
 - `pip3 install -r requirements.txt`
-- Shodan API key (**Membership** plan, not the free one)
+- Shodan API key (**not** the free one)
 
 # Usage
 
@@ -32,7 +32,7 @@ As of now, this tool can be used in three different ways:
 `python3 favUp.py --favicon-url https://domain.behind.cloudflare/assets/favicon.ico -sc`
 
 #### Web
-`python3 favUp.py --web https://domain.behind.cloudflare -sc`
+`python3 favUp.py --web domain.behind.cloudflare -sc`
 
 
 ## Module
@@ -41,7 +41,7 @@ As of now, this tool can be used in three different ways:
 from favUp import FavUp
 f = FavUp()          
 f.shodanCLI = True
-f.web = "https://domain.behind.cloudflare"
+f.web = "domain.behind.cloudflare"
 # if you want to print to stdout
 f.show = True 
 f.run()

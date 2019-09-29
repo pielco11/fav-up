@@ -79,7 +79,11 @@ class FavUp(object):
             data = data.content
             self.favhash = self.faviconHash(data)
         else:
-            data = requests.get(self.web, stream=True)
+            try:
+                data = requests.get(f"https://{self.web}", stream=True)
+            except requests.exceptions.ConnectionError:
+                print(f"[x] Connection refused by {self.web}.")
+                exit(1)
             self.deepConnectionLens(data)
             data = self.searchFaviconHTML(self.web).content
             self.favhash = self.faviconHash(data, web_source=True)
