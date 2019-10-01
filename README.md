@@ -76,9 +76,8 @@ At least `python3.6` is required due to spicy syntax.
 Publication section coming soon
 
 # Credits
-Creator [@noneprivacy](https://twitter.com/noneprivacy)
 
-Another maintainer is [Petruknisme](https://twitter.com/petruknisme)
+Conceived by Francesco Poldi [noneprivacy](https://twitter.com/noneprivacy), build with Aan Wahyu [Petruknisme](https://twitter.com/petruknisme)
 
 [stanley_HAL](https://twitter.com/stanley_HAL) told me how Shodan calculates the favicon hash.
 
