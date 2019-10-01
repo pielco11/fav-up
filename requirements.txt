@@ -4,3 +4,4 @@ mmh3
 ipwhois
 requests>=2.22.0
 argparse
+fake-useragent

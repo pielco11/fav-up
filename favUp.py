@@ -1,12 +1,16 @@
 import requests
 import base64
 import argparse
+import sys
 
 import mmh3
 from ipwhois import IPWhois
 from bs4 import BeautifulSoup
 from shodan import Shodan
 from shodan.cli.helpers import get_api_key
+from fake_useragent import UserAgent
+from fake_useragent import FakeUserAgentError
+ua = UserAgent()
 
 class FavUp(object):
     def __init__(self, *args, **kwargs):
@@ -80,7 +84,10 @@ class FavUp(object):
             self.favhash = self.faviconHash(data)
         else:
             try:
-                data = requests.get(f"https://{self.web}", stream=True)
+                headers = {
+                    'User-Agent': self.get_user_agent(),
+                }
+                data = requests.get(f"{self.web}", stream=True, headers=headers)
             except requests.exceptions.ConnectionError:
                 print(f"[x] Connection refused by {self.web}.")
                 exit(1)
@@ -113,19 +120,29 @@ class FavUp(object):
         for s in results["matches"]:
             self.realIPs.append(s['ip_str'])
             if self.show:
-                print(f"Real-IP: {s['ip_str']}")
+                print(f"Real-IP: {s['ip_str']} - {s['http']['title']}")
 
     def deepConnectionLens(self, response):
-        try:
-            mIP = list(response.raw._connection.sock.getpeername())[0]
-        except AttributeError:
-            mIP = list(response.raw._connection.sock.socket.getpeername())[0]
+        if response.status_code == 200:
+            try:
+                mIP = list(response.raw._connection.sock.getpeername())[0]
+            except AttributeError:
+                mIP = list(response.raw._connection.sock.socket.getpeername())[0]
 
-        self.maskIP = mIP
-        self.maskISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
-        if self.show:
-            print(f"Mask-IP: {self.maskIP}")
-            print(f"Mask-ISP: {self.maskISP}")
+            self.maskIP = mIP
+            self.maskISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
+            if self.show:
+                print(f"Mask-IP: {self.maskIP}")
+                print(f"Mask-ISP: {self.maskISP}")
+        else:
+            print(f"[x] There's problem when getting icon with status code: {response.status_code}" )
+            sys.exit()
+    
+    def get_user_agent(self):
+        try:
+            return ua.random
+        except FakeUserAgentError:
+            return "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
 
 if __name__ == '__main__':
     FavUpApp = FavUp(show=True)
