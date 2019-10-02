@@ -149,6 +149,7 @@ class FavUp(object):
         _alreadyScanned = {}
         for _fObject in self.faviconsList:
             try:
+                _ = _alreadyScanned[_fObject['favhash']]
                 if _fObject['favhash'] != "not-found":
                     found_ips = self.shodanSearch(_fObject['favhash'])
                 else:
