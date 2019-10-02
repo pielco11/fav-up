@@ -1,6 +1,7 @@
 import requests
 import base64
 import argparse
+import time
 
 import tqdm
 import mmh3
@@ -18,15 +19,11 @@ class FavUp(object):
 
         self.key = None
         self.keyFile = None
-        self.shodanCLI = None
-        self.faviconFile = None
-        self.faviconURL = None
+        self.shodanCLI = []
+        self.faviconFile = []
+        self.faviconURL = []
         self.web = None
-        self.favhash = None
         self.shodan = None
-        self.maskIP = None
-        self.maskISP = None
-        self.realIPs = []
         self.fileList = []
         self.urlList = []
         self.webList = []
@@ -55,13 +52,13 @@ class FavUp(object):
             args = self._argsCheck(ap.parse_args())
             self.key = args.key
             self.keyFile = args.key_file
-            self.shodanCLI = args.shodan_cli
-            self.faviconFile = args.favicon_file
-            self.faviconURL = args.favicon_url
-            self.web = args.web
-            self.fileList = _serializeListFile(args.favicon_list)
-            self.urlList = _serializeListFile(args.url_list)
-            self.webList = _serializeListFile(args.web_list)
+            self.shodanCLI   = args.shodan_cli
+            self.faviconFile = [args.favicon_file] if args.favicon_file else []
+            self.faviconURL  = [args.favicon_url] if args.favicon_url else []
+            self.web = [args.web] if args.web else []
+            self.fileList = self._serializeListFile(args.favicon_list) if args.favicon_list else []
+            self.urlList = self._serializeListFile(args.url_list) if args.url_list else []
+            self.webList = self._serializeListFile(args.web_list) if args.web_list else []
 
             self.run()
     
@@ -88,12 +85,6 @@ class FavUp(object):
                     _output.append(_l.strip())
         return _output
 
-
-    def _runShodanSearch(self):
-        if self.show:
-            print(f"Favicon Hash: {self.favhash}")
-        self.shodanSearch(self.favhash)
-
     def run(self):
         if self.keyFile:
             self.shodan = Shodan(open(self.keyFile, "r").readline().strip())
@@ -106,52 +97,73 @@ class FavUp(object):
             exit(1)
 
         if self.faviconFile or self.fileList:
-            self.fileList.append(self.faviconFile)
+            self.fileList.extend(self.faviconFile)
             for fav in self.fileList:
+                print(f"[+] getting data for: {fav}")
                 data = open(fav, 'rb').read()
-                self.favhash = self.faviconHash(data)
-                self._runShodanSearch()
+                _fH = self.faviconHash(data)
                 self.faviconsList.append({
-                    'favhash': self.favhash,
+                    'favhash': _fH,
                     'file': fav,
-                    'realIPs': self.realIPs
+                    '_origin': fav
                     })
         if self.faviconURL or self.urlList:
-            self.urlList.append(self.faviconURL)
+            self.urlList.extend(self.faviconURL)
             for fav in self.urlList:
+                print(f"[+] getting data for: {fav}")
                 data = requests.get(fav, stream=True)
-                self.deepConnectionLens(data)
+                _dcL = self.deepConnectionLens(data)
                 data = data.content
-                self.favhash = self.faviconHash(data)
-                self._runShodanSearch()
+                _fH = self.faviconHash(data)
                 self.faviconsList.append({
-                    'favhash': self.favhash,
+                    'favhash': _fH,
                     'url': self.faviconURL,
-                    'maskIP': self.maskIP,
-                    'maskISP': self.maskISP,
-                    'realIPs': self.realIPs
+                    'domain': fav,
+                    'maskIP': _dcL['mIP'],
+                    'maskISP': _dcL['mISP'],
+                    '_origin': fav
                     })
         if self.web or self.webList:
-            self.webList.append(self.web)
+            self.webList.extend(self.web)
             for w in self.webList:
+                print(f"[+] getting data for: {w}")
                 try:
                     data = requests.get(f"https://{w}", stream=True)
-                    self.deepConnectionLens(data)
-                    data = self.searchFaviconHTML(w).content
-                    self.favhash = self.faviconHash(data, web_source=True)
-                    self._runShodanSearch()
-                    self.faviconsList.append({
-                        'favhash': self.favhash,
-                        'url': data,
-                        'maskIP': self.maskIP,
-                        'maskISP': self.maskISP,
-                        'realIPs': self.realIPs
-                        })
+                    _dcL = self.deepConnectionLens(data)
+                    data = self.searchFaviconHTML(f"https://{w}")
+                    if not isinstance(data, str):    
+                        _fH = self.faviconHash(data.content, web_source=True)
+                    else:
+                        _fH = "not-found"
                 except requests.exceptions.ConnectionError:
                     print(f"[x] Connection refused by {w}.")
-            if len(self.webList) == 1:
-                exit(1)
+                    if len(self.webList) == 1:
+                        exit(1)
+                self.faviconsList.append({
+                    'favhash': _fH,
+                    'domain': f"https://{w}",
+                    'maskIP': _dcL['mIP'],
+                    'maskISP': _dcL['mISP'],
+                    '_origin': w
+                    })
+        _alreadyScanned = {}
+        for _fObject in self.faviconsList:
+            try:
+                if _fObject['favhash'] != "not-found":
+                    found_ips = self.shodanSearch(_fObject['favhash'])
+                else:
+                    found_ips = "not-found"
+                _alreadyScanned.update({_fObject['favhash']: found_ips})
+            except KeyError:
+                found_ips = _alreadyScanned[_fObject['favhash']]
+            _fObject.update({'found_ips': found_ips})
 
+            if self.show:
+                print("-"*25)
+                print(f"[{_fObject['_origin']}]")
+                del _fObject['_origin']
+                for _atr in _fObject:
+                    print(f"--> {_atr:<7} :: {_fObject[_atr]}")
     
     def faviconHash(self, data, web_source=None):
         if web_source:
@@ -163,17 +175,18 @@ class FavUp(object):
     def searchFaviconHTML(self, link):
         data = requests.get(link, stream=True)
         soup = BeautifulSoup(data.content, 'html.parser')
-        iconLink = soup.find('link', rel='icon').get("href")
-        if not iconLink.startswith("http"):
-            iconLink = link + "/" + iconLink
-        return requests.get(iconLink)
+        searchIcon = soup.find('link', rel='icon')
+        if searchIcon:
+            iconLink = searchIcon.get("href")
+            if not iconLink.startswith("http"):
+                iconLink = link + "/" + iconLink
+            return requests.get(iconLink)
+        return "not-found"
 
     def shodanSearch(self, favhash):
+        time.sleep(0.1)
         results = self.shodan.search(f"http.favicon.hash:{favhash}")
-        for s in results["matches"]:
-            self.realIPs.append(s['ip_str'])
-            if self.show:
-                print(f"Real-IP: {s['ip_str']}")
+        return ','.join([s['ip_str'] for s in results["matches"]])
 
     def deepConnectionLens(self, response):
         try:
@@ -181,11 +194,10 @@ class FavUp(object):
         except AttributeError:
             mIP = list(response.raw._connection.sock.socket.getpeername())[0]
 
-        self.maskIP = mIP
-        self.maskISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
-        if self.show:
-            print(f"Mask-IP: {self.maskIP}")
-            print(f"Mask-ISP: {self.maskISP}")
+        return {
+            'mIP': mIP,
+            'mISP': IPWhois(mIP).lookup_whois()['nets'][0]['name']
+        }
 
 if __name__ == '__main__':
     FavUpApp = FavUp(show=True)
