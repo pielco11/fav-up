@@ -71,12 +71,15 @@ f.favhash
 # Compatibility
 At least `python3.6` is required due to spicy syntax.
 
+# Publications
+
+Publication section coming soon
+
 # Credits
-Creator [@noneprivacy](https://twitter.com/noneprivacy)
 
-Another maintainer is [aancw](https://github.com/aancw)
+Conceived by Francesco Poldi [noneprivacy](https://twitter.com/noneprivacy), build with Aan Wahyu [Petruknisme](https://twitter.com/petruknisme)
 
-[stanley_HAL](https://stanley_HAL) told me how Shodan calculates the favicon hash.
+[stanley_HAL](https://twitter.com/stanley_HAL) told me how Shodan calculates the favicon hash.
 
 [What is Murmur3?](https://www.sderosiaux.com/articles/2017/08/26/the-murmur3-hash-function--hashtables-bloom-filters-hyperloglog/)
 

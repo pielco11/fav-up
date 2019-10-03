@@ -5,3 +5,4 @@ ipwhois
 requests>=2.22.0
 argparse
 tqdm
+fake-useragent

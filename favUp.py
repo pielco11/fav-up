@@ -9,6 +9,9 @@ from ipwhois import IPWhois
 from bs4 import BeautifulSoup
 from shodan import Shodan
 from shodan.cli.helpers import get_api_key
+from fake_useragent import UserAgent
+from fake_useragent import FakeUserAgentError
+ua = UserAgent()
 
 class FavUp(object):
     def __init__(self, *args, **kwargs):
@@ -111,7 +114,10 @@ class FavUp(object):
             self.urlList.extend(self.faviconURL)
             for fav in self.urlList:
                 print(f"[+] getting data for: {fav}")
-                data = requests.get(fav, stream=True)
+                headers = {
+                        'User-Agent': self.get_user_agent(),
+                    }
+                data = requests.get(fav, stream=True, headers=headers)
                 _dcL = self.deepConnectionLens(data)
                 data = data.content
                 _fH = self.faviconHash(data)
@@ -128,7 +134,10 @@ class FavUp(object):
             for w in self.webList:
                 print(f"[+] getting data for: {w}")
                 try:
-                    data = requests.get(f"https://{w}", stream=True)
+                    headers = {
+                        'User-Agent': self.get_user_agent(),
+                    }
+                    data = requests.get(f"https://{w}", stream=True, headers=headers)
                     _dcL = self.deepConnectionLens(data)
                     data = self.searchFaviconHTML(f"https://{w}")
                     if not isinstance(data, str):    
@@ -150,15 +159,14 @@ class FavUp(object):
         for _fObject in self.faviconsList:
             try:
                 _ = _alreadyScanned[_fObject['favhash']]
+            except KeyError:
+                found_ips = "not-found"
                 if _fObject['favhash'] != "not-found":
                     found_ips = self.shodanSearch(_fObject['favhash'])
-                else:
-                    found_ips = "not-found"
                 _alreadyScanned.update({_fObject['favhash']: found_ips})
-            except KeyError:
                 found_ips = _alreadyScanned[_fObject['favhash']]
-            _fObject.update({'found_ips': found_ips})
-
+                _fObject.update({'found_ips': found_ips})
+            
             if self.show:
                 print("-"*25)
                 print(f"[{_fObject['_origin']}]")
@@ -187,18 +195,29 @@ class FavUp(object):
     def shodanSearch(self, favhash):
         time.sleep(0.1)
         results = self.shodan.search(f"http.favicon.hash:{favhash}")
-        return ','.join([s['ip_str'] for s in results["matches"]])
+        return '|'.join([s['ip_str']+','+s['http']['title'] for s in results["matches"]])
 
     def deepConnectionLens(self, response):
-        try:
-            mIP = list(response.raw._connection.sock.getpeername())[0]
-        except AttributeError:
-            mIP = list(response.raw._connection.sock.socket.getpeername())[0]
-
+        if response.status_code == 200:
+            mISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
+            try:
+                mIP = list(response.raw._connection.sock.getpeername())[0]
+            except AttributeError:
+                mIP = list(response.raw._connection.sock.socket.getpeername())[0]
+        else:
+            print(f"[x] There's problem when getting icon with status code: {response.status_code}" )
+            mIP = 'not-found'
+            mISP = 'not-found'
         return {
             'mIP': mIP,
-            'mISP': IPWhois(mIP).lookup_whois()['nets'][0]['name']
+            'mISP': mISP
         }
+    
+    def get_user_agent(self):
+        try:
+            return ua.random
+        except FakeUserAgentError:
+            return "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
 
 if __name__ == '__main__':
     FavUpApp = FavUp(show=True)
