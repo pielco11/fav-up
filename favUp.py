@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from shodan import Shodan
 from shodan.cli.helpers import get_api_key
 from fake_useragent import UserAgent
-from fake_useragent import FakeUserAgentError
+from fake_useragent.errors import FakeUserAgentError
 ua = UserAgent()
 
 class FavUp(object):
@@ -199,11 +199,11 @@ class FavUp(object):
 
     def deepConnectionLens(self, response):
         if response.status_code == 200:
-            mISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
             try:
                 mIP = list(response.raw._connection.sock.getpeername())[0]
             except AttributeError:
                 mIP = list(response.raw._connection.sock.socket.getpeername())[0]
+            mISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
         else:
             print(f"[x] There's problem when getting icon with status code: {response.status_code}" )
             mIP = 'not-found'
