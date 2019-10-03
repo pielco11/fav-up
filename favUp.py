@@ -172,7 +172,7 @@ class FavUp(object):
                 print(f"[{_fObject['_origin']}]")
                 del _fObject['_origin']
                 for _atr in _fObject:
-                    print(f"--> {_atr:<7} :: {_fObject[_atr]}")
+                    print(f"--> {_atr:<10} :: {_fObject[_atr]}")
     
     def faviconHash(self, data, web_source=None):
         if web_source:
