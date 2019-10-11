@@ -3,6 +3,7 @@ import base64
 import argparse
 import time
 import json
+import os
 
 import tqdm
 import mmh3
@@ -12,7 +13,6 @@ from shodan import Shodan
 from shodan.cli.helpers import get_api_key
 from fake_useragent import UserAgent
 from fake_useragent.errors import FakeUserAgentError
-ua = UserAgent()
 
 class FavUp(object):
     def __init__(self, *args, **kwargs):
@@ -35,6 +35,10 @@ class FavUp(object):
         self.webList = []
 
         self.faviconsList = []
+
+        self.current_work_dir = os.getcwd()
+        self.ua_json_location = "{}/ua.json".format(self.current_work_dir)
+        self.ua = UserAgent(path=self.ua_json_location)
 
         self.output = ""
         self._output = None
@@ -259,7 +263,7 @@ class FavUp(object):
     
     def get_user_agent(self):
         try:
-            return ua.random
+            return self.ua.random
         except FakeUserAgentError:
             return "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
 
