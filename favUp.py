@@ -20,18 +20,22 @@ class FavUp(object):
         """
         self.show = None
         self._iterator = None
+        self.shodan = None
 
         self.key = None
         self.keyFile = None
-        self.shodanCLI = []
+        self.shodanCLI = None
+
         self.faviconFile = []
         self.faviconURL = []
-        self.web = None
-        self.shodan = None
+        self.web = []
+
         self.fileList = []
         self.urlList = []
         self.webList = []
+
         self.faviconsList = []
+
         self.output = ""
         self._output = None
 
