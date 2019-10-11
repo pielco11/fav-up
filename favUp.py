@@ -195,7 +195,7 @@ class FavUp(object):
     def shodanSearch(self, favhash):
         time.sleep(0.1)
         results = self.shodan.search(f"http.favicon.hash:{favhash}")
-        return '|'.join([s['ip_str']+','+s['http']['title'] for s in results["matches"]])
+        return ','.join([s['ip_str'] for s in results["matches"]])
 
     def deepConnectionLens(self, response):
         if response.status_code == 200:
