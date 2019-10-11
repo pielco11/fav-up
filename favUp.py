@@ -2,6 +2,7 @@ import requests
 import base64
 import argparse
 import time
+import json
 
 import tqdm
 import mmh3
@@ -31,6 +32,8 @@ class FavUp(object):
         self.urlList = []
         self.webList = []
         self.faviconsList = []
+        self.output = ""
+        self._output = None
 
         if kwargs.get('show'):
             self.show = True
@@ -50,6 +53,8 @@ class FavUp(object):
                 help="Iterate over a file that contains the full URL of all the icons which you want to lookup.")
             ap.add_argument('-wl', '--web-list',
                 help="Iterate over a file that contains all the domains which you want to lookup.")
+            
+            ap.add_argument('-o', '--output', help="Specify output file, currently supported formats are CSV and JSON.")
 
 
             args = self._argsCheck(ap.parse_args())
@@ -62,8 +67,18 @@ class FavUp(object):
             self.fileList = self._serializeListFile(args.favicon_list) if args.favicon_list else []
             self.urlList = self._serializeListFile(args.url_list) if args.url_list else []
             self.webList = self._serializeListFile(args.web_list) if args.web_list else []
+            self.output = args.output
+
+            if self.output:
+                self._output = {
+                    'type': self.output.split('.')[1],
+                    'file': open(self.output, 'w')
+                }
 
             self.run()
+
+            if self.output:
+                self._output['file'].close()
     
     def _argsCheck(self, args):
         if not (args.key_file or args.key or args.shodan_cli):
@@ -156,6 +171,19 @@ class FavUp(object):
                     '_origin': w
                     })
         _alreadyScanned = {}
+
+        _aF = set([f for i in self.faviconsList for f in i])
+        _aF.remove('_origin')
+        _aF.add('found_ips')
+
+        _cObj = {}
+        for f in _aF:
+            _cObj.update({f:''})
+
+        if self.output:
+            if self._output['type'].lower() == 'csv':
+                self._output['file'].write(','.join(f for f in _aF)+'\n')
+
         for _fObject in self.faviconsList:
             try:
                 _ = _alreadyScanned[_fObject['favhash']]
@@ -164,8 +192,8 @@ class FavUp(object):
                 if _fObject['favhash'] != "not-found":
                     found_ips = self.shodanSearch(_fObject['favhash'])
                 _alreadyScanned.update({_fObject['favhash']: found_ips})
-                found_ips = _alreadyScanned[_fObject['favhash']]
-                _fObject.update({'found_ips': found_ips})
+            found_ips = _alreadyScanned[_fObject['favhash']]
+            _fObject.update({'found_ips': found_ips})
             
             if self.show:
                 print("-"*25)
@@ -173,6 +201,18 @@ class FavUp(object):
                 del _fObject['_origin']
                 for _atr in _fObject:
                     print(f"--> {_atr:<10} :: {_fObject[_atr]}")
+            
+            if self.output:
+                _tcObj = _cObj
+                _tcObj.update(_fObject)
+                _t = self._output['type']
+                if _t.lower() == 'csv':
+                    self._output['file'].write(','.join(str(_tcObj[k]) for k in _tcObj)+'\n')
+                elif _t.lower() == 'json':
+                    self._output['file'].write(json.dumps(_tcObj)+'\n')
+                else:
+                    print("[x] Output format not supported, closing.")
+                    exit(1)
     
     def faviconHash(self, data, web_source=None):
         if web_source:
