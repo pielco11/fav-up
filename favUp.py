@@ -37,7 +37,7 @@ class FavUp(object):
         self.faviconsList = []
 
         self.current_work_dir = os.getcwd()
-        self.ua_json_location = "{}/ua.json".format(self.current_work_dir)
+        self.ua_json_location = "{}/data/ua.json".format(self.current_work_dir)
         self.ua = UserAgent(path=self.ua_json_location)
 
         self.output = ""
