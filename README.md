@@ -1,8 +1,8 @@
 # Fav-up
 Lookups for real IP starting from the favicon icon and using Shodan.
 
-![img](https://i.imgur.com/oio0qCh.png)
-![img2](https://i.imgur.com/NbkqGbY.png)
+![img](https://i.imgur.com/ejPmx8T.png)
+![img2](https://i.imgur.com/7wf5AL7.png)
 
 
 # Installation
