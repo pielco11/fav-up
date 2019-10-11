@@ -64,19 +64,43 @@ f.favhash
 ### All attributes
 | Variable | Type |
 |-:|:-|
-| FavUp.show        | bool
-| FavUp.key         | str
-| FavUp.keyFile     | str
-| FavUp.shodanCLI   | bool
-| FavUp.faviconFile | str
-| FavUp.faviconURL  | str
-| FavUp.web         | str
-| FavUp.favhash     | int
-| FavUp.shodan      | Shodan class
-| FavUp.maskIP      | str
-| FavUp.maskISP     | str
-| FavUp.realIPs     | list[str]
+| FavUp.show         | bool
+| FavUp.key          | str
+| FavUp.keyFile      | str
+| FavUp.shodanCLI    | bool
+| FavUp.faviconFile  | str
+| FavUp.faviconURL   | str
+| FavUp.web          | str
+| FavUp.shodan       | Shodan class
+| FavUp.faviconsList | list[dict]
 
+`FavUp.faviconsList` stores all the results, the key fields depend by the type of the lookup you want to do.
+
+In case of `--favicon-file` or `--favicon-list`:
+
+- `favhash` stores the hash of the favicon icon
+- `file` stores the path
+
+In case of `--favicon-url` or `--url-list`:
+
+- `favhash` stores the hash of the favicon icon
+- `url` stores the URL of the favicon icon
+- `domain` stores the domain name
+- `maskIP` stores the "fake" IP (e.g. the Cloudflare one)
+- `maskISP` store the ISP name associated to the `maskIP`
+
+In case of `--web` or `--web-list`:
+
+- `favhash` stores the hash of the favicon icon
+- `domain` stores the domain name
+- `maskIP` stores the "fake" IP (e.g. the Cloudflare one)
+- `maskISP` store the ISP name associated to the `maskIP`
+
+(in this case the URL of the favicon icon is returned by the `href` attribute of `<link rel='icon'>` HTML element)
+
+If, while searching for the favicon icon, nothing useful is found, `not-found` will be returned.
+
+In all three cases, `found_ips` field is added for every checked entry. If no IP(s) have been found, `not-found` will be returned.
 
 # Compatibility
 At least `python3.6` is required due to spicy syntax.
