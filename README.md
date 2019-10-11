@@ -24,6 +24,16 @@ As of now, this tool can be used in three different ways:
 - `-fu` or `--favicon-url`: you don't store locally the favicon icon, but you know the exact url where it resides
 - `-w` or `--web`: you don't know the URL of the favicon icon, but you still know that's there
 
+You can specify input files which may contain urls to domain, to favicon icons, or simply locations of locally stored icons:
+
+- `-fl`, `--favicon-list`: the file contains the full path of all the icons which you want to lookup
+- `-ul`, `--url-list`: the file contains the full URL of all the icons which you want to lookup
+- `-wl`, `--web-list`: the contains all the domains which you want to lookup
+
+You can also save the results to a CSV/JSON file:
+
+- `-o`, `--output`: specify the output and the format, e.g.: `results.csv` will save to a CSV file (the type is automatically recognized by the extension of the output file)
+
 ### Examples
 #### Favicon-file
 `python3 favUp.py --favicon-file favicon.ico -sc`
