@@ -249,21 +249,25 @@ class FavUp(object):
         return "not-found"
 
     def shodanSearch(self, favhash):
-        time.sleep(0.1)
+        time.sleep(1)
         results = self.shodan.search(f"http.favicon.hash:{favhash}")
-        return ','.join([s['ip_str'] for s in results["matches"]])
+        return '|'.join([s['ip_str'] for s in results["matches"]])
 
     def deepConnectionLens(self, response):
+        mIP = 'not-found'
+        mISP = 'not-found'
         if response.status_code == 200:
             try:
                 mIP = list(response.raw._connection.sock.getpeername())[0]
+                mISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
             except AttributeError:
-                mIP = list(response.raw._connection.sock.socket.getpeername())[0]
-            mISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
-        else:
-            print(f"[x] There's problem when getting icon with status code: {response.status_code}" )
-            mIP = 'not-found'
-            mISP = 'not-found'
+                try:
+                    mIP = list(response.raw._connection.sock.socket.getpeername())[0]
+                    mISP = IPWhois(mIP).lookup_whois()['nets'][0]['name']
+                except AttributeError:
+                    pass
+        if mIP == 'not-found':
+            self._iterator.write(f"[x] There's problem when getting icon for {response.url.split('/')[2]} with status code: {response.status_code}" )
         return {
             'mIP': mIP,
             'mISP': mISP
