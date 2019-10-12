@@ -4,9 +4,6 @@ Lookups for real IP starting from the favicon icon and using Shodan.
 ![img](https://i.imgur.com/ejPmx8T.png)
 ![img2](https://i.imgur.com/7wf5AL7.png)
 
-# Notice 
-This tool is for educational purposes only. The authors and contributors don't take any responsibility for the misuse of this tool. Use It At Your Own Risk! 
-
 # Installation
 - `pip3 install -r requirements.txt`
 - Shodan API key (**not** the free one)
@@ -51,16 +48,16 @@ You can also save the results to a CSV/JSON file:
 
 ```python
 from favUp import FavUp
+
 f = FavUp()          
 f.shodanCLI = True
 f.web = "domain.behind.cloudflare"
-# if you want to print to stdout
 f.show = True 
 f.run()
-# returns the list of the IPs found on Shodan
-f.realIPs
-# returns the hash of the favicon
-f.favhash
+
+for result in f.faviconsList:
+    print(f"Real-IP: {result['found_ips']}")
+    print(f"Hash: {result['favhash']}")
 ```
 
 ### All attributes
@@ -108,11 +105,14 @@ In all three cases, `found_ips` field is added for every checked entry. If no IP
 At least `python3.6` is required due to spicy syntax.
 
 # Feedback/Suggestion
-Feel free to create an issue in this repository. Your feedbacks and suggestions are always welcome <3
+Feel free to open any issue, your feedback and suggestions are always welcome <3
 
 # Publications
 
 Publication section coming soon
+
+# Disclaimer 
+This tool is for educational purposes only. The authors and contributors don't take any responsibility for the misuse of this tool. Use It At Your Own Risk! 
 
 # Credits
 
