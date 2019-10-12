@@ -5,8 +5,8 @@ import time
 import json
 import os
 
-import tqdm
 import mmh3
+from tqdm import tqdm
 from ipwhois import IPWhois
 from bs4 import BeautifulSoup
 from shodan import Shodan
@@ -77,6 +77,8 @@ class FavUp(object):
             self.webList = self._serializeListFile(args.web_list) if args.web_list else []
             self.output = args.output
 
+            self._iterator = tqdm(total=len(self.fileList)+len(self.urlList)+len(self.webList))
+
             if self.output:
                 self._output = {
                     'type': self.output.split('.')[1],
@@ -125,7 +127,8 @@ class FavUp(object):
         if self.faviconFile or self.fileList:
             self.fileList.extend(self.faviconFile)
             for fav in self.fileList:
-                print(f"[+] getting data for: {fav}")
+                self._iterator.set_description(f"[+] iterating over favicon files | processing {fav}")
+                self._iterator.update(1)
                 data = open(fav, 'rb').read()
                 _fH = self.faviconHash(data)
                 self.faviconsList.append({
@@ -136,7 +139,8 @@ class FavUp(object):
         if self.faviconURL or self.urlList:
             self.urlList.extend(self.faviconURL)
             for fav in self.urlList:
-                print(f"[+] getting data for: {fav}")
+                self._iterator.set_description(f"[+] iterating over favicon URLs | processing {fav}")
+                self._iterator.update(1)
                 headers = {
                         'User-Agent': self.get_user_agent(),
                     }
@@ -155,7 +159,8 @@ class FavUp(object):
         if self.web or self.webList:
             self.webList.extend(self.web)
             for w in self.webList:
-                print(f"[+] getting data for: {w}")
+                self._iterator.set_description(f"[+] iterating over domains | processing {w}")
+                self._iterator.update(1)
                 try:
                     headers = {
                         'User-Agent': self.get_user_agent(),
@@ -168,7 +173,7 @@ class FavUp(object):
                     else:
                         _fH = "not-found"
                 except requests.exceptions.ConnectionError:
-                    print(f"[x] Connection refused by {w}.")
+                    self._iterator.write(f"[x] Connection refused by {w}.")
                     if len(self.webList) == 1:
                         exit(1)
                 self.faviconsList.append({
@@ -192,7 +197,10 @@ class FavUp(object):
             if self._output['type'].lower() == 'csv':
                 self._output['file'].write(','.join(f for f in _aF)+'\n')
 
+        self._iterator.reset(total=len(self.faviconsList))
         for _fObject in self.faviconsList:
+            self._iterator.set_description(f"[+] lookup for {_fObject['favhash']}")
+            self._iterator.update(1)
             try:
                 _ = _alreadyScanned[_fObject['favhash']]
             except KeyError:
@@ -204,11 +212,11 @@ class FavUp(object):
             _fObject.update({'found_ips': found_ips})
             
             if self.show:
-                print("-"*25)
-                print(f"[{_fObject['_origin']}]")
+                self._iterator.write("-"*25)
+                self._iterator.write(f"[{_fObject['_origin']}]")
                 del _fObject['_origin']
                 for _atr in _fObject:
-                    print(f"--> {_atr:<10} :: {_fObject[_atr]}")
+                    self._iterator.write(f"--> {_atr:<10} :: {_fObject[_atr]}")
             
             if self.output:
                 _tcObj = _cObj
@@ -219,7 +227,7 @@ class FavUp(object):
                 elif _t.lower() == 'json':
                     self._output['file'].write(json.dumps(_tcObj)+'\n')
                 else:
-                    print("[x] Output format not supported, closing.")
+                    self._iterator.write("[x] Output format not supported, closing.")
                     exit(1)
     
     def faviconHash(self, data, web_source=None):
