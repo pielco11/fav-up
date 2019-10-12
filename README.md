@@ -4,6 +4,8 @@ Lookups for real IP starting from the favicon icon and using Shodan.
 ![img](https://i.imgur.com/ejPmx8T.png)
 ![img2](https://i.imgur.com/7wf5AL7.png)
 
+# Notice 
+This tool is for educational purposes only. The authors and contributors don't take any responsibility for the misuse of this tool. Use It At Your Own Risk! 
 
 # Installation
 - `pip3 install -r requirements.txt`
@@ -104,6 +106,9 @@ In all three cases, `found_ips` field is added for every checked entry. If no IP
 
 # Compatibility
 At least `python3.6` is required due to spicy syntax.
+
+# Feedback/Suggestion
+Feel free to create an issue in this repository. Your feedbacks and suggestions are always welcome <3
 
 # Publications
 
