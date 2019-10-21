@@ -109,7 +109,7 @@ Feel free to open any issue, your feedback and suggestions are always welcome <3
 
 # Publications
 
-Publication section coming soon
+[Unveiling IPs behind Cloudflare](https://pielco11.ovh/posts/cloud-hunting/) by [@noneprivacy](https://twitter.com/noneprivacy)
 
 # Disclaimer 
 This tool is for educational purposes only. The authors and contributors don't take any responsibility for the misuse of this tool. Use It At Your Own Risk! 
