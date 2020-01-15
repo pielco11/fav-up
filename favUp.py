@@ -144,7 +144,7 @@ class FavUp(object):
                 headers = {
                         'User-Agent': self.get_user_agent(),
                     }
-                data = requests.get(fav, stream=True, headers=headers)
+                data = requests.get(fav, stream=True, headers=headers, verify=False)
                 _dcL = self.deepConnectionLens(data)
                 data = data.content
                 _fH = self.faviconHash(data)
@@ -165,7 +165,7 @@ class FavUp(object):
                     headers = {
                         'User-Agent': self.get_user_agent(),
                     }
-                    data = requests.get(f"https://{w}", stream=True, headers=headers)
+                    data = requests.get(f"https://{w}", stream=True, headers=headers, verify=False)
                     _dcL = self.deepConnectionLens(data)
                     data = self.searchFaviconHTML(f"https://{w}")
                     if not isinstance(data, str):    
@@ -238,14 +238,14 @@ class FavUp(object):
         return mmh3.hash(b64data)
 
     def searchFaviconHTML(self, link):
-        data = requests.get(link, stream=True)
+        data = requests.get(link, stream=True, verify=False)
         soup = BeautifulSoup(data.content, 'html.parser')
         searchIcon = soup.find('link', rel='icon')
         if searchIcon:
             iconLink = searchIcon.get("href")
             if not iconLink.startswith("http"):
                 iconLink = link + "/" + iconLink
-            return requests.get(iconLink)
+            return requests.get(iconLink, verify=False)
         return "not-found"
 
     def shodanSearch(self, favhash):
