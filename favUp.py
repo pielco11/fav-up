@@ -54,6 +54,7 @@ class FavUp(object):
             ap.add_argument('-ff', '--favicon-file', help="Load the favicon icon from a local file.")
             ap.add_argument('-fu', '--favicon-url', help="Load the favicon icon from an URL.")
             ap.add_argument('-w', '--web', help="Extracts the favicon location from the page.")
+            ap.add_argument('-fh', '--favicon-hash', help='Running from direct favicon hash number')
 
             ap.add_argument('-fl', '--favicon-list',
                 help="Iterate over a file that contains the full path of all the icons which you want to lookup.")
@@ -71,6 +72,7 @@ class FavUp(object):
             self.shodanCLI   = args.shodan_cli
             self.faviconFile = [args.favicon_file] if args.favicon_file else []
             self.faviconURL  = [args.favicon_url] if args.favicon_url else []
+            self.faviconHashVal = [args.favicon_hash] if args.favicon_hash else []
             self.web = [args.web] if args.web else []
             self.fileList = self._serializeListFile(args.favicon_list) if args.favicon_list else []
             self.urlList = self._serializeListFile(args.url_list) if args.url_list else []
@@ -89,15 +91,16 @@ class FavUp(object):
 
             if self.output:
                 self._output['file'].close()
+
     
     def _argsCheck(self, args):
         if not (args.key_file or args.key or args.shodan_cli):
             print('[x] Please specify the key with --key, --key-file or --shodan-cli.')
             exit(1)
-        
+
         if not (args.favicon_file or args.favicon_url or args.web or
-                args.favicon_list or args.url_list or args.web_list):
-            print('[x] Please specify the source of the favicon with --favicon-file, --favicon-url, --web'+
+                args.favicon_list or args.url_list or args.web_list or args.favicon_hash):
+            print('[x] Please specify the source of the favicon with --favicon-file, --favicon-url, --favicon-hash, --web'+
                 ', --favicon-list, --url-list or --web-list.')
             exit(1)
 
@@ -123,6 +126,16 @@ class FavUp(object):
         else:
             print('[x] Wrong input API key type.')
             exit(1)
+        
+        if self.faviconHashVal:
+            self._iterator.set_description(f"[+] Using Favicon Hash as parameter")
+            self._iterator.update(1)
+            for fav in self.faviconHashVal:    
+                _fH = fav
+                self.faviconsList.append({
+                    'favhash': _fH,
+                    '_origin': self.faviconHashVal
+                })
 
         if self.faviconFile or self.fileList:
             self.fileList.extend(self.faviconFile)
@@ -201,6 +214,7 @@ class FavUp(object):
         for _fObject in self.faviconsList:
             self._iterator.set_description(f"[+] lookup for {_fObject['favhash']}")
             self._iterator.update(1)
+            print(_fObject['favhash'])
             try:
                 _ = _alreadyScanned[_fObject['favhash']]
             except KeyError:

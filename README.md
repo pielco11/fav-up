@@ -22,6 +22,7 @@ As of now, this tool can be used in three different ways:
 - `-ff` or `--favicon-file`: you store locally a favicon icon which you want to lookup
 - `-fu` or `--favicon-url`: you don't store locally the favicon icon, but you know the exact url where it resides
 - `-w` or `--web`: you don't know the URL of the favicon icon, but you still know that's there
+- `-fh` or `--favicon-hash`: you know the hash and want to search the entire internet.
 
 You can specify input files which may contain urls to domain, to favicon icons, or simply locations of locally stored icons:
 
