@@ -1,11 +1,12 @@
 # Fav-up
-Lookups for real IP starting from the favicon icon and using Shodan.
+Lookups for real IP starting from the favicon icon and using Criminalip, Shodan.
 
 ![img](https://i.imgur.com/ejPmx8T.png)
 ![img2](https://i.imgur.com/7wf5AL7.png)
 
 # Installation
 - `pip3 install -r requirements.txt`
+- Criminalip API Key (**not** the free one)
 - Shodan API key (**not** the free one)
 
 # Usage
