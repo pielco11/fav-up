@@ -38,7 +38,7 @@ class FavUp(object):
 
         self.current_work_dir = os.getcwd()
         self.ua_json_location = "{}/data/ua.json".format(self.current_work_dir)
-        self.ua = UserAgent(path=self.ua_json_location)
+        self.ua = UserAgent(use_external_data=True, cache_path=self.ua_json_location)
 
         self.output = ""
         self._output = None
