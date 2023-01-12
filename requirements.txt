@@ -1,4 +1,4 @@
-beautifulsoup4==4.8.1
+beautifulsoup4==4.9.3
 shodan==1.28.0
 mmh3==3.0.0
 ipwhois==1.2.0
