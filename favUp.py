@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import requests
 import base64
 import argparse
@@ -36,7 +38,7 @@ class FavUp(object):
 
         self.faviconsList = []
 
-        self.current_work_dir = os.getcwd()
+        self.current_work_dir = os.path.dirname(os.path.realpath(__file__)) 
         self.ua_json_location = "{}/data/ua.json".format(self.current_work_dir)
         self.ua = UserAgent(use_external_data=True, cache_path=self.ua_json_location)
 
