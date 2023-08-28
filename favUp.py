@@ -18,6 +18,8 @@ class FavUp(object):
     def __init__(self, *args, **kwargs):
         """ Parse the arguments
         """
+
+        self.FALLBACK_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
         self.show = None
         self._iterator = None
         self.shodan = None
@@ -37,8 +39,7 @@ class FavUp(object):
         self.faviconsList = []
 
         self.current_work_dir = os.getcwd()
-        self.ua_json_location = "{}/data/ua.json".format(self.current_work_dir)
-        self.ua = UserAgent(path=self.ua_json_location)
+        self.ua = UserAgent(fallback=self.FALLBACK_UA)
 
         self.output = ""
         self._output = None
