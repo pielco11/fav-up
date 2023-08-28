@@ -1,8 +1,8 @@
-beautifulsoup4
-shodan
-mmh3
-ipwhois
+beautifulsoup4==4.9.3
+shodan==1.28.0
+mmh3==3.0.0
+ipwhois==1.2.0
 requests>=2.22.0
-argparse
+argparse==1.4.0
 tqdm>=4.32.0
-fake-useragent==1.2.1
+fake-useragent
