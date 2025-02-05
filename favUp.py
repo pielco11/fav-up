@@ -178,6 +178,7 @@ class FavUp(object):
             for w in self.webList:
                 self._iterator.set_description(f"[+] iterating over domains | processing {w}")
                 self._iterator.update(1)
+                _fH = "not-found"
                 try:
                     headers = {
                         "User-Agent": self.get_user_agent(),
@@ -187,8 +188,6 @@ class FavUp(object):
                     data = self.searchFaviconHTML(f"https://{w}")
                     if not isinstance(data, str):    
                         _fH = self.faviconHash(data.content, web_source=True)
-                    else:
-                        _fH = "not-found"
                 except requests.exceptions.ConnectionError:
                     self._iterator.write(f"[x] Connection refused by {w}.")
                     if len(self.webList) == 1:
